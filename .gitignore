@@ -2,3 +2,4 @@
 !.gitignore
 !day*
 !day*/*.jl
+!day*/*.rkt
