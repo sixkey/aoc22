@@ -3,3 +3,6 @@
 !day*
 !day*/*.jl
 !day*/*.rkt
+!kck
+!kck/*.jl
+!kck/*.rkt
