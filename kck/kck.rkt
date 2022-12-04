@@ -4,7 +4,7 @@
 
 ;;;; IO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide call-with-content call-with-lines print-id )
+( provide call-with-content call-with-lines print-id trace )
 
 ( define ( read-lines file ) 
     ( begin ( define strport ( open-output-string ) )
@@ -24,6 +24,8 @@
     ( begin ( print x ) 
             ( x ) ) )
 
+( define ( trace a b ) ( begin ( print a ) b ) )
+
 ;;;; Cat ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ( provide bimap list->pair )
@@ -36,11 +38,13 @@
 
 ;;;; Math ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide sum )
+( provide sum in-range divisible )
 
 ( define ( sum l ) ( foldr + 0 l ) )
 
 ( define ( divisible a b ) ( = ( % a b ) 0 ) )
+
+( define ( in-range a mn mx ) ( and ( <= a mx ) ( >= a mn ) ) )
 
 ;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -50,11 +54,13 @@
 
 ;;;; List ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide split-on slice )
+( provide split-on slice ind-pair )
 
 ( define ( split-on lst pos ) ( cons ( take lst pos ) ( drop lst pos ) ) )
 
 ( define ( slice a b c ) ( take ( drop a b ) ( - c b ) ) )
+
+( define ( ind-pair f ) ( lambda ( p ) ( f ( car p ) ( cdr p ) ) ) )
 
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
