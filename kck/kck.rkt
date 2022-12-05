@@ -54,7 +54,7 @@
 
 ;;;; List ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide split-on slice ind-pair )
+( provide split-on slice ind-pair build-mat filter-by )
 
 ( define ( split-on lst pos ) ( cons ( take lst pos ) ( drop lst pos ) ) )
 
@@ -62,9 +62,15 @@
 
 ( define ( ind-pair f ) ( lambda ( p ) ( f ( car p ) ( cdr p ) ) ) )
 
+( define ( build-mat r c f ) 
+  ( build-list r ( lambda ( i ) ( build-list c ( lambda ( j ) ( f i j ) ) ) ) ) 
+)
+
+( define ( filter-by pred ) ( lambda ( lst ) ( filter pred lst ) ) )
+
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide char-offset slice-each )
+( provide char-offset slice-each lines map-index )
 
 ( define ( char-offset ch1 ch2 ) ( - ( char->integer ch1 ) ( char->integer ch2 ) ) )
 
@@ -73,3 +79,8 @@
     ( build-list ( / ( length lst ) size ) ( lambda ( i ) 
         ( slice lst ( * i size ) ( * ( + i 1 ) size ) ) ) )
 )
+
+( define ( lines str ) ( string-split str "\n" ) )
+
+( define ( map-index f lst ) ( map f ( range ( length lst ) ) lst ) )
+
