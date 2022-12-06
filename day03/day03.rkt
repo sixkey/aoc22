@@ -2,6 +2,7 @@
 
                           ( require "../kck/kck.rkt" )
                              ( require racket/set )
+                             ( require algorithms )
 
                  ( define ( char->int c ) ( if ( char<? c #\a )
                          ( + ( char-offset c #\A ) 27 )
@@ -23,7 +24,7 @@
                             ( define ( part-2 mat )
                           ( sum ( map ( lambda ( xs )
             ( char->int ( set-first ( apply set-intersect xs ) ) ) )
-                           ( slice-each mat 3 ) ) ) )
+                           ( chunks-of mat 3 ) ) ) )
 
                  ( call-with-lines "i.aoc" part-1 parse-input )
                 ( call-with-lines "i.aoc" part-2 parse-input-2 )

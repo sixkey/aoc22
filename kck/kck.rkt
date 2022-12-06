@@ -8,22 +8,22 @@
 
 ( provide call-with-content call-with-lines print-id trace )
 
-( define ( read-lines file ) 
+( define ( read-lines file )
     ( begin ( define strport ( open-output-string ) )
             ( copy-port file strport )
             ( get-output-string strport ) ) )
 
-( define ( call-with-content filename proc parse-content ) 
+( define ( call-with-content filename proc parse-content )
     ( call-with-input-file filename
       ( lambda ( file )
          ( proc ( parse-content ( read-lines file ) ) ) ) ) )
 
-( define ( call-with-lines filename proc on-line ) 
-    ( call-with-content filename proc 
+( define ( call-with-lines filename proc on-line )
+    ( call-with-content filename proc
         ( lambda ( c ) ( map on-line ( string-split c "\n" ) ) ) ) )
 
-( define ( print-id x ) 
-    ( begin ( print x ) 
+( define ( print-id x )
+    ( begin ( print x )
             ( x ) ) )
 
 ( define ( trace a b ) ( begin ( print a ) b ) )
@@ -32,8 +32,8 @@
 
 ( provide bimap list->pair )
 
-( define ( bimap f g p ) 
-    ( cons ( f ( car p ) ) ( g ( cdr p ) ) ) 
+( define ( bimap f g p )
+    ( cons ( f ( car p ) ) ( g ( cdr p ) ) )
 )
 
 ( define ( list->pair l ) ( cons ( first l ) ( last l ) ) )
@@ -52,7 +52,13 @@
 
 ( define ( id x ) x )
 
+;;;; Pred ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( define ( neq? a b ) ( not ( eq? a b ) ) )
+
 ;;;; List ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Cutting
 
 ( provide split-on slice ind-pair build-mat filter-by )
 
@@ -60,33 +66,32 @@
 
 ( define ( slice a b c ) ( take ( drop a b ) ( - c b ) ) )
 
+; Inductions
+
 ( define ( ind-pair f ) ( lambda ( p ) ( f ( car p ) ( cdr p ) ) ) )
 
-( define ( build-mat r c f ) 
-  ( build-list r ( lambda ( i ) ( build-list c ( lambda ( j ) ( f i j ) ) ) ) ) 
+( define ( ind-list f ) ( lambda ( l ) ( map f l ) ) )
+
+; Misc
+
+( define ( build-mat r c f )
+  ( build-list r ( lambda ( i ) ( build-list c ( lambda ( j ) ( f i j ) ) ) ) )
 )
 
 ( define ( filter-by pred ) ( lambda ( lst ) ( filter pred lst ) ) )
 
+( define ( map-index f lst ) ( map f ( range ( length lst ) ) lst ) )
+
+( define ( all-unique lst )
+  ( eq? ( check-duplicates lst ) #f )
+)
+
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide char-offset slice-each lines map-index all-unique )
+( provide char-offset lines map-index all-unique )
 
 ( define ( char-offset ch1 ch2 ) ( - ( char->integer ch1 ) ( char->integer ch2 ) ) )
 
-; quadratic /o\
-( define ( slice-each lst size ) 
-    ( build-list ( / ( length lst ) size ) ( lambda ( i ) 
-        ( slice lst ( * i size ) ( * ( + i 1 ) size ) ) ) )
-)
-
 ( define ( lines str ) ( string-split str "\n" ) )
 
-( define ( map-index f lst ) ( map f ( range ( length lst ) ) lst ) )
-
-( define ( neq? a b ) ( not ( eq? a b ) ) )
-
-( define ( all-unique lst ) 
-  ( ( all? ( ind-pair neq? ) ) ( map list->pair ( combinations lst 2 ) ) )
-) 
 

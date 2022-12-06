@@ -1,6 +1,7 @@
                                   #lang racket
 
                           ( require "../kck/kck.rkt" )
+                             ( require algorithms )
 
 ( define ( char-offset ch1 ch2 ) ( - ( char->integer ch1 ) ( char->integer ch2 ) ) )
 
