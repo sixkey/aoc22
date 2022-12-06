@@ -2,6 +2,8 @@
 
 ( require racket/control )
 
+( require predicates )
+
 ;;;; IO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ( provide call-with-content call-with-lines print-id trace )
@@ -38,9 +40,7 @@
 
 ;;;; Math ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide sum in-range divisible )
-
-( define ( sum l ) ( foldr + 0 l ) )
+( provide in-range divisible )
 
 ( define ( divisible a b ) ( = ( % a b ) 0 ) )
 
@@ -70,7 +70,7 @@
 
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide char-offset slice-each lines map-index )
+( provide char-offset slice-each lines map-index all-unique )
 
 ( define ( char-offset ch1 ch2 ) ( - ( char->integer ch1 ) ( char->integer ch2 ) ) )
 
@@ -83,4 +83,10 @@
 ( define ( lines str ) ( string-split str "\n" ) )
 
 ( define ( map-index f lst ) ( map f ( range ( length lst ) ) lst ) )
+
+( define ( neq? a b ) ( not ( eq? a b ) ) )
+
+( define ( all-unique lst ) 
+  ( ( all? ( ind-pair neq? ) ) ( map list->pair ( combinations lst 2 ) ) )
+) 
 
