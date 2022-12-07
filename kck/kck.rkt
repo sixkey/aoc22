@@ -44,7 +44,7 @@
 
 ( define ( divisible a b ) ( = ( % a b ) 0 ) )
 
-( define ( in-range a mn mx ) ( and ( <= a mx ) ( >= a mn ) ) )
+( define ( in-interval a mn mx ) ( and ( <= a mx ) ( >= a mn ) ) )
 
 ;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -60,7 +60,7 @@
 
 ; Cutting
 
-( provide split-on slice ind-pair build-mat filter-by )
+( provide split-on slice )
 
 ( define ( split-on lst pos ) ( cons ( take lst pos ) ( drop lst pos ) ) )
 
@@ -68,15 +68,33 @@
 
 ; Inductions
 
+( provide ind-pair ind-list diag foldl1 )
+
 ( define ( ind-pair f ) ( lambda ( p ) ( f ( car p ) ( cdr p ) ) ) )
 
 ( define ( ind-list f ) ( lambda ( l ) ( map f l ) ) )
 
+( define ( diag x ) ( cons x x ) )
+
+( define ( foldl1 f lst ) ( foldl f ( car lst ) ( cdr lst ) ) )
+
+; Math 
+
+( provide minimum maximum )
+
+( define ( minimum lst ) ( foldl1 min lst ) )
+
+( define ( maximum lst ) ( foldl1 max lst ) )
+
 ; Misc
+
+( provide build-mat cons-with filter-by )
 
 ( define ( build-mat r c f )
   ( build-list r ( lambda ( i ) ( build-list c ( lambda ( j ) ( f i j ) ) ) ) )
 )
+
+( define ( cons-with a ) ( λ ( l ) ( cons a l ) ) )
 
 ( define ( filter-by pred ) ( lambda ( lst ) ( filter pred lst ) ) )
 
@@ -86,6 +104,25 @@
   ( eq? ( check-duplicates lst ) #f )
 )
 
+;;;; Stack ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( provide empty-stack on-top! top bottom pop! push! stack->list make-stack
+          stack-length stack )
+
+( struct stack ( lst ) #:mutable #:transparent ) 
+
+( define ( empty-stack ) ( stack ( list ) ) )
+
+( define ( on-top! st f ) ( push! st ( f ( pop! st ) ) ) )
+( define ( top st ) ( car ( stack-lst st ) ) )
+( define ( bottom st ) ( cdr ( stack-lst st ) ) )
+( define ( pop! st ) 
+  ( let ( [ val ( top st ) ] ) ( set-stack-lst! st ( bottom st ) ) val ) )
+( define ( push! st val ) ( set-stack-lst! st ( cons val ( stack-lst st ) ) ) ) 
+( define make-stack ( λ vs ( stack vs ) ) )
+( define ( stack->list st ) ( stack-lst st ) )
+( define ( stack-length st ) ( length ( stack-lst st ) ) ) 
+
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ( provide char-offset lines map-index all-unique )
@@ -94,4 +131,10 @@
 
 ( define ( lines str ) ( string-split str "\n" ) )
 
+;;;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+( provide pipe )
+
+( define pipe 
+  ( lambda xs 
+    ( foldl ( lambda ( f a ) ( f a ) ) ( car xs ) ( cdr xs ) ) ) )
