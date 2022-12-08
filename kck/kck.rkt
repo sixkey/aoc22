@@ -80,11 +80,15 @@
 
 ; Math 
 
-( provide minimum maximum )
+( provide minimum maximum bool->number prod )
 
 ( define ( minimum lst ) ( foldl1 min lst ) )
 
 ( define ( maximum lst ) ( foldl1 max lst ) )
+
+( define ( bool->number n ) ( if n 1 0 ) )
+
+( define ( prod lst ) ( foldl * 1 lst ) )
 
 ; Misc
 
@@ -125,11 +129,13 @@
 
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide char-offset lines map-index all-unique )
+( provide char-offset lines map-index all-unique char->number )
 
 ( define ( char-offset ch1 ch2 ) ( - ( char->integer ch1 ) ( char->integer ch2 ) ) )
 
 ( define ( lines str ) ( string-split str "\n" ) )
+
+( define ( char->number c ) ( - ( char->integer c ) ( char->integer #\0 ) ) )
 
 ;;;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
