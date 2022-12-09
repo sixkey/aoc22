@@ -46,12 +46,6 @@
 
 ( define ( in-interval a mn mx ) ( and ( <= a mx ) ( >= a mn ) ) )
 
-;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-( provide id )
-
-( define ( id x ) x )
-
 ;;;; Pred ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ( define ( neq? a b ) ( not ( eq? a b ) ) )
@@ -136,6 +130,10 @@
 ( define ( lines str ) ( string-split str "\n" ) )
 
 ( define ( char->number c ) ( - ( char->integer c ) ( char->integer #\0 ) ) )
+
+( provide string-car )
+
+( define ( string-car s ) ( string-ref s 0 ) )
 
 ;;;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
