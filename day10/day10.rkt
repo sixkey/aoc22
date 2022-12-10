@@ -32,16 +32,15 @@
 )
 
 ( define ( part-2 cmnds )
-  ( define ( relevant-cycle cycle ) ( divisible ( - cycle 20 ) 40 ) )
   ( define registers ( fold-to-registers cmnds ) )
   ( define ( step i r )
     ( if ( in-interval ( modulo i 40 ) r ( + r 2 ) ) #\# #\. )
   )
   ( map list->string
-      ( chunks-of ( map step
-                        ( range-shift 1 0 ( length registers ) )
-                        registers )
-                  40 ) )
+        ( chunks-of ( map step
+                          ( range-shift 1 0 ( length registers ) )
+                          registers )
+                    40 ) )
 )
 
 ( call-with-lines "i.aoc" part-1 parse-line )
