@@ -40,11 +40,14 @@
 
 ;;;; Math ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide in-range divisible )
+( provide in-interval divisible range-shift )
 
-( define ( divisible a b ) ( = ( % a b ) 0 ) )
+( define ( divisible a b ) ( = ( modulo a b ) 0 ) )
 
 ( define ( in-interval a mn mx ) ( and ( <= a mx ) ( >= a mn ) ) )
+
+( define range-shift ( lambda xs
+  ( apply range ( map ( lambda ( v ) ( + v ( car xs ) ) ) ( cdr xs ) ) ) ) )
 
 ;;;; Pred ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -72,7 +75,7 @@
 
 ( define ( foldl1 f lst ) ( foldl f ( car lst ) ( cdr lst ) ) )
 
-; Math 
+; Math
 
 ( provide minimum maximum bool->number prod )
 
@@ -107,19 +110,19 @@
 ( provide empty-stack on-top! top bottom pop! push! stack->list make-stack
           stack-length stack )
 
-( struct stack ( lst ) #:mutable #:transparent ) 
+( struct stack ( lst ) #:mutable #:transparent )
 
 ( define ( empty-stack ) ( stack ( list ) ) )
 
 ( define ( on-top! st f ) ( push! st ( f ( pop! st ) ) ) )
 ( define ( top st ) ( car ( stack-lst st ) ) )
 ( define ( bottom st ) ( cdr ( stack-lst st ) ) )
-( define ( pop! st ) 
+( define ( pop! st )
   ( let ( [ val ( top st ) ] ) ( set-stack-lst! st ( bottom st ) ) val ) )
-( define ( push! st val ) ( set-stack-lst! st ( cons val ( stack-lst st ) ) ) ) 
+( define ( push! st val ) ( set-stack-lst! st ( cons val ( stack-lst st ) ) ) )
 ( define make-stack ( λ vs ( stack vs ) ) )
 ( define ( stack->list st ) ( stack-lst st ) )
-( define ( stack-length st ) ( length ( stack-lst st ) ) ) 
+( define ( stack-length st ) ( length ( stack-lst st ) ) )
 
 ;;;; String ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -139,6 +142,6 @@
 
 ( provide pipe )
 
-( define pipe 
-  ( lambda xs 
+( define pipe
+  ( lambda xs
     ( foldl ( lambda ( f a ) ( f a ) ) ( car xs ) ( cdr xs ) ) ) )
