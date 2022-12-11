@@ -53,6 +53,15 @@
 
 ( define ( neq? a b ) ( not ( eq? a b ) ) )
 
+;;;; Vector ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( provide vector-update! )
+
+( define ( vector-update! vec pos f ) 
+  ( vector-set! vec pos ( f ( vector-ref vec pos ) ) )
+  vec 
+)
+
 ;;;; List ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Cutting
@@ -74,6 +83,18 @@
 ( define ( diag x ) ( cons x x ) )
 
 ( define ( foldl1 f lst ) ( foldl f ( car lst ) ( cdr lst ) ) )
+
+; Zip 
+
+( provide unzip-pair extr-pair )
+
+( define ( extr-pair f g ) ( lambda ( e ) ( cons ( f e ) ( g e ) ) ) )
+
+( define ( unzip-pair lst ) 
+  ( foldr ( lambda ( el acc ) ( cons ( cons ( car el ) ( car acc ) )
+                                     ( cons ( cdr el ) ( cdr acc ) ) ) ) 
+          ( cons ( list ) ( list ) ) 
+          lst ) )
 
 ; Math
 
@@ -145,3 +166,10 @@
 ( define pipe
   ( lambda xs
     ( foldl ( lambda ( f a ) ( f a ) ) ( car xs ) ( cdr xs ) ) ) )
+
+;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( provide church )
+( define ( church n f z ) 
+  ( if ( = n 0 ) z ( church ( - n 1 ) f ( f z ) ) )
+)
