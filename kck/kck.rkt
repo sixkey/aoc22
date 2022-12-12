@@ -1,8 +1,11 @@
 #lang racket
 
 ( require racket/control )
-
 ( require predicates )
+( require math/array )
+( require ( only-in relation/function partial ) )
+( require ( only-in algebraic/prelude id ) )
+( require ( only-in data/queue make-queue enqueue! ) )
 
 ;;;; IO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -24,7 +27,7 @@
 
 ( define ( print-id x )
     ( begin ( print x )
-            ( x ) ) )
+            x ) )
 
 ( define ( trace a b ) ( begin ( print a ) b ) )
 
@@ -57,10 +60,67 @@
 
 ( provide vector-update! )
 
-( define ( vector-update! vec pos f ) 
+( define ( vector-update! vec pos f )
   ( vector-set! vec pos ( f ( vector-ref vec pos ) ) )
-  vec 
+  vec
 )
+
+( provide vector-foldl vector-all )
+
+( define ( vector-foldl f i . vs )
+  ( apply foldl f i ( map vector->list vs ) ) )
+
+; This is not lazy, it will always go through all vectors
+;( define ( vector-all pred . vs )
+  ;( apply vector-foldl
+    ;( lambda xs ( apply call-with-init-last ( lambda ( vs acc ) ( and ( pred vs ) acc ) ) ( list xs ) ) )
+    ;#t vs ) )
+
+;( define ( call-with-init-last f lst )
+  ;( define ( splt lst ) ( match lst
+    ;[ ( list el ) ( cons ( list ) el ) ]
+    ;[ ( cons x xs ) ( bimap ( cons-by x ) id ( splt xs ) ) ]
+  ;) )
+  ;( ( ind-pair f ) ( splt lst ) )
+;)
+
+;( define ( nempty-foldr comb tlf lst ) ( match lst
+  ;[ ( list el ) ( tlf el ) ]
+  ;[ ( cons x xs ) ( comb x ( nempty-foldr comb tlf xs ) ) ]
+;) )
+
+
+;;;; Array ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+( provide 4-neigh in-array-bounds? array-index-where )
+
+( define ( 4-neigh pos )
+  ( map ( lambda ( v ) ( vector-map + v pos ) )
+        ( list #[  1  0 ]
+               #[  0  1 ]
+               #[ -1  0 ]
+               #[  0 -1 ] ) ) )
+
+( define ( in-array-bounds? is ar )
+  ( define shape ( array-shape ar ) )
+  ( for/and ( [ s shape ] [ i is ] ) ( in-interval i 0 ( - s 1 ) ) )
+)
+
+( define ( array-index-where p ar )
+  ( define ( step acc i ) ( let ( [ el ( array-ref ar i ) ] )
+                                ( if ( p el ) ( cons i acc ) acc ) ) )
+  ( sequence-fold step ( list ) ( in-array-indexes ( array-shape ar ) ) )
+)
+
+;;;; Queue ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( provide queue )
+
+( define ( queue . vs )
+  ( define res ( make-queue ) )
+  ( for-each ( lambda ( v ) ( enqueue! res v ) ) vs )
+  res )
 
 ;;;; List ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -84,16 +144,16 @@
 
 ( define ( foldl1 f lst ) ( foldl f ( car lst ) ( cdr lst ) ) )
 
-; Zip 
+; Zip
 
 ( provide unzip-pair extr-pair )
 
 ( define ( extr-pair f g ) ( lambda ( e ) ( cons ( f e ) ( g e ) ) ) )
 
-( define ( unzip-pair lst ) 
+( define ( unzip-pair lst )
   ( foldr ( lambda ( el acc ) ( cons ( cons ( car el ) ( car acc ) )
-                                     ( cons ( cdr el ) ( cdr acc ) ) ) ) 
-          ( cons ( list ) ( list ) ) 
+                                     ( cons ( cdr el ) ( cdr acc ) ) ) )
+          ( cons ( list ) ( list ) )
           lst ) )
 
 ; Math
@@ -110,13 +170,15 @@
 
 ; Misc
 
-( provide build-mat cons-with filter-by )
+( provide build-mat cons-by cons-on filter-by )
 
 ( define ( build-mat r c f )
   ( build-list r ( lambda ( i ) ( build-list c ( lambda ( j ) ( f i j ) ) ) ) )
 )
 
-( define ( cons-with a ) ( λ ( l ) ( cons a l ) ) )
+( define ( cons-by h ) ( λ ( t ) ( cons h t ) ) )
+
+( define ( cons-on t ) ( lambda ( h ) ( cons h t ) ) )
 
 ( define ( filter-by pred ) ( lambda ( lst ) ( filter pred lst ) ) )
 
@@ -169,7 +231,10 @@
 
 ;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide church )
-( define ( church n f z ) 
+( provide church ad-infinitum )
+
+( define ( church n f z )
   ( if ( = n 0 ) z ( church ( - n 1 ) f ( f z ) ) )
 )
+
+( define ( ad-infinitum f ) ( begin ( f ) ( ad-infinitum f ) ) )
