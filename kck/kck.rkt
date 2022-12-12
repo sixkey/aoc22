@@ -65,7 +65,7 @@
   vec
 )
 
-( provide vector-foldl vector-all )
+( provide vector-foldl )
 
 ( define ( vector-foldl f i . vs )
   ( apply foldl f i ( map vector->list vs ) ) )
