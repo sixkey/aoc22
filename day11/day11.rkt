@@ -1,7 +1,6 @@
 #lang racket
 
 ( require "../kck/kck.rkt" )
-
 ( require algorithms )
 ( require racket/struct )
 ( require ( only-in algebraic/prelude id ) )
