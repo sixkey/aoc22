@@ -9,7 +9,7 @@
 
 ;;;; IO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide call-with-content call-with-lines print-id trace )
+( provide call-with-content call-with-lines )
 
 ( define ( read-lines file )
     ( begin ( define strport ( open-output-string ) )
@@ -25,11 +25,18 @@
     ( call-with-content filename proc
         ( lambda ( c ) ( map on-line ( string-split c "\n" ) ) ) ) )
 
+( provide print-id trace println* )
+
 ( define ( print-id x )
     ( begin ( print x )
             x ) )
 
 ( define ( trace a b ) ( begin ( print a ) b ) )
+
+; /o\
+( define ( println* . vs )
+  ( for-each ( lambda ( v ) ( print v ) ( display " " ) ) vs )
+  ( displayln "" ) )
 
 ;;;; Cat ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -146,7 +153,7 @@
 
 ; Zip
 
-( provide unzip-pair extr-pair )
+( provide unzip-pair extr-pair zipwith )
 
 ( define ( extr-pair f g ) ( lambda ( e ) ( cons ( f e ) ( g e ) ) ) )
 
@@ -155,6 +162,11 @@
                                      ( cons ( cdr el ) ( cdr acc ) ) ) )
           ( cons ( list ) ( list ) )
           lst ) )
+
+( define ( zipwith f . ls )
+  ( if ( ( all? nonempty-list? ) ls )
+       ( cons ( apply f ( map car ls ) ) ( apply zipwith f ( map cdr ls ) ) )
+       ( list ) ) )
 
 ; Math
 
@@ -167,6 +179,12 @@
 ( define ( bool->number n ) ( if n 1 0 ) )
 
 ( define ( prod lst ) ( foldl * 1 lst ) )
+
+( provide pos? neg? )
+
+( define ( pos? . vs ) ( ( all? ( >? 0 ) ) vs ) )
+
+( define ( neg? . vs ) ( ( all? ( <? 0 ) ) vs ) )
 
 ; Misc
 
@@ -225,9 +243,8 @@
 
 ( provide pipe )
 
-( define pipe
-  ( lambda xs
-    ( foldl ( lambda ( f a ) ( f a ) ) ( car xs ) ( cdr xs ) ) ) )
+( define ( pipe val . funs )
+  ( foldl ( lambda ( f a ) ( f a ) ) val funs ) )
 
 ;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
