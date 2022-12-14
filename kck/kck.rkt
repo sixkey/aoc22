@@ -6,6 +6,7 @@
 ( require ( only-in relation/function partial ) )
 ( require ( only-in algebraic/prelude id ) )
 ( require ( only-in data/queue make-queue enqueue! ) )
+( require ( for-syntax racket/base ) )
 
 ;;;; IO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -25,13 +26,18 @@
     ( call-with-content filename proc
         ( lambda ( c ) ( map on-line ( string-split c "\n" ) ) ) ) )
 
-( provide print-id trace println* )
+( provide print-id trace traceln println* println*-id )
 
 ( define ( print-id x )
     ( begin ( print x )
             x ) )
 
+( define ( println*-id . vs )
+    ( begin ( apply println* vs )
+            ( values vs ) ) )
+
 ( define ( trace a b ) ( begin ( print a ) b ) )
+( define ( traceln a b ) ( begin ( println a ) b ) )
 
 ; /o\
 ( define ( println* . vs )
@@ -72,10 +78,31 @@
   vec
 )
 
-( provide vector-foldl )
+( provide vector+ vector- vector* vector/ )
+
+( define ( vector+ . vs ) ( apply vector-map + vs ) )
+( define ( vector- . vs ) ( apply vector-map - vs ) )
+( define ( vector* . vs ) ( apply vector-map * vs ) )
+( define ( vector/ . vs ) ( apply vector-map / vs ) )
+
+( provide vector-foldl vec2-x vec2-y vec2-range-square )
 
 ( define ( vector-foldl f i . vs )
   ( apply foldl f i ( map vector->list vs ) ) )
+
+( define ( vec2-x v ) ( vector-ref v 0 ) )
+( define ( vec2-y v ) ( vector-ref v 1 ) )
+
+( define ( vec2-range-square a b )
+
+  ( define xstart ( min ( vec2-x a ) ( vec2-x b ) ) )
+  ( define xend   ( max ( vec2-x a ) ( vec2-x b ) ) )
+  ( define ystart ( min ( vec2-y a ) ( vec2-y b ) ) )
+  ( define yend   ( max ( vec2-y a ) ( vec2-y b ) ) )
+  ( map list->vector ( cartesian-product
+                       ( inclusive-range xstart xend )
+                       ( inclusive-range ystart yend ) ) )
+)
 
 ; This is not lazy, it will always go through all vectors
 ;( define ( vector-all pred . vs )
@@ -241,17 +268,39 @@
 
 ;;;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide pipe )
+( provide pipe cond/value otherwise )
 
 ( define ( pipe val . funs )
   ( foldl ( lambda ( f a ) ( f a ) ) val funs ) )
 
+( define-syntax ( cond/value conds )
+  ( syntax-case conds ( otherwise )
+    [ ( _ ( otherwise v ) ) #'v ]
+    [ ( _ ( v ) ) #'( when v v ) ]
+    [ ( _ ( v p ) ) #'( when ( p v ) v ) ]
+    [ ( _ ( v p f ) ) #'( when ( p v ) ( f v ) ) ]
+    [ ( _ ( v ) c1 ... ) #'( if v v ( cond/value c1 ... ) ) ]
+    [ ( _ ( v p ) c1 ... ) #'( if ( p v ) v ( cond/value c1 ... ) ) ]
+    [ ( _ ( v p f ) c1 ... ) #'( if ( p v ) ( f v ) ( cond/value c1 ... ) ) ]
+  )
+)
+
+( define-syntax otherwise
+  ( lambda ( stx )
+    ( raise-syntax-error #f "Illegal use of otherwise outside cond/value" stx ) ) )
+
 ;;;; Fun ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-( provide church ad-infinitum )
+( provide church church-infinity church-infinity-with-cont ad-infinitum )
 
 ( define ( church n f z )
   ( if ( = n 0 ) z ( church ( - n 1 ) f ( f z ) ) )
 )
 
 ( define ( ad-infinitum f ) ( begin ( f ) ( ad-infinitum f ) ) )
+
+( define ( church-infinity f z ) ( church-infinity f ( f z ) ) )
+
+( define ( church-infinity-with-cont f z )
+  ( lambda ( k ) ( ( church-infinity-with-cont f ( f z k ) ) k ) ) )
+
