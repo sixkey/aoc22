@@ -26,10 +26,14 @@
     ( call-with-content filename proc
         ( lambda ( c ) ( map on-line ( string-split c "\n" ) ) ) ) )
 
-( provide print-id trace traceln println* println*-id )
+( provide print-id trace traceln println* println-id println*-id )
 
 ( define ( print-id x )
     ( begin ( print x )
+            x ) )
+
+( define ( println-id x )
+    ( begin ( println x )
             x ) )
 
 ( define ( println*-id . vs )
@@ -85,13 +89,21 @@
 ( define ( vector* . vs ) ( apply vector-map * vs ) )
 ( define ( vector/ . vs ) ( apply vector-map / vs ) )
 
-( provide vector-foldl vec2-x vec2-y vec2-range-square )
+( provide vector-foldl vec2-x vec2-y vec2-x? vec2-y? vec2-range-square vec2-man-dist )
+
+( define ( vec2-man-dist u v ) ( + ( abs ( - ( vec2-x u ) ( vec2-x v ) ) )
+                                   ( abs ( - ( vec2-y u ) ( vec2-y v ) ) ) ) )
 
 ( define ( vector-foldl f i . vs )
   ( apply foldl f i ( map vector->list vs ) ) )
 
+( define ( vec-bimap f g u ) ( interval ( f ( interval-a u ) )
+                                        ( g ( interval-b u ) ) ) )
+
 ( define ( vec2-x v ) ( vector-ref v 0 ) )
 ( define ( vec2-y v ) ( vector-ref v 1 ) )
+( define ( vec2-x? a ) ( lambda ( v ) ( = ( vec2-x v ) a ) ) )
+( define ( vec2-y? a ) ( lambda ( v ) ( = ( vec2-y v ) a ) ) )
 
 ( define ( vec2-range-square a b )
 
@@ -123,6 +135,83 @@
   ;[ ( cons x xs ) ( comb x ( nempty-foldr comb tlf xs ) ) ]
 ;) )
 
+;;;; Interval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( provide inter-set-empty interval interval-a interval-b inter-set-cover
+          interval-intersect interval-touch interval-join inter-set-add
+          inter-set-contains inter-set-intersection interval-intersection )
+
+( struct inter-set ( intervals ) #:transparent )
+
+( define ( inter-set-empty ) ( inter-set ( list ) ) )
+
+( define ( interval a b ) ( vector a b ) )
+( define interval-a vec2-x )
+( define interval-b vec2-y )
+( define ( interval-size u ) ( + ( abs ( - ( interval-b u ) ( interval-a u ) ) ) 1 ) )
+
+( define ( inter-set-cover s )
+  ( foldr ( lambda ( v i ) ( + ( interval-size v ) i ) )
+          0 ( inter-set-intervals s ) ) )
+
+( define ( interval-intersect u v )
+
+  ;( println* "inter" u v )
+  ( if ( > ( interval-a u ) ( interval-a v ) ) ( interval-intersect v u )
+    ( >= ( interval-b u ) ( interval-a v ) )
+  )
+)
+
+( define ( interval< u v ) ( < ( interval-a u ) ( interval-a v ) ) )
+( define ( interval> u v ) ( > ( interval-a u ) ( interval-a v ) ) )
+
+( define ( interval-touch u v )
+  ( if ( interval> u v ) ( interval-touch v u )
+    ( interval-intersect ( vec-bimap id ( curry + 1 ) u ) v ) ) )
+
+( define ( interval-join u v )
+  ( if ( interval> u v ) ( interval-join v u )
+    ( if ( not ( interval-touch u v ) ) ( error "intervals don't touch" )
+         ( interval ( min ( interval-a u ) ( interval-a v ) )
+                    ( max ( interval-b u ) ( interval-b v ) ) ) ) ) )
+
+( define ( interval-contains a i ) ( in-interval a ( interval-a i ) ( interval-b i ) ) )
+
+( define ( inter-set-contains a s )
+  ( for/or ( [ i ( inter-set-intervals s ) ] )
+    ( interval-contains a i ) ) )
+
+( define ( inter-set-add u s )
+
+  ( define ( merge-step i l ) ( match l
+    [ ( cons x xs )
+        ( if ( interval-touch x i ) ( cons ( interval-join x i ) xs )
+                                    ( cons i l ) ) ]
+    [ ( list ) ( list i ) ]
+  ) )
+  ( define ( bubble-step l lst ) ( match lst
+    [ ( cons r rst )
+        ( cond [ ( interval-touch l r ) ( cons ( interval-join l r ) rst ) ]
+               [ ( interval< r l ) ( cons r ( cons l rst ) ) ]
+               [ else ( cons l ( cons r rst ) ) ] ) ]
+  ) )
+  ( inter-set ( pipe ( inter-set-intervals s )
+                     ( curry foldr bubble-step ( list u ) )
+                     ( curry foldr merge-step ( list ) )  ) )
+)
+
+( define ( interval-intersection u v )
+  ( if ( interval> u v ) ( interval-intersection v u )
+    ( if ( not ( interval-intersect u v ) ) #f
+      ( interval ( max ( interval-a u ) ( interval-a v ) )
+                 ( min ( interval-b u ) ( interval-b v ) ) )
+    )
+) )
+
+( define ( inter-set-intersection i s )
+  ( inter-set ( pipe ( inter-set-intervals s )
+              ( curry filter ( curry interval-intersect i ) )
+              ( curry map ( curry interval-intersection i ) ) ) ) )
 
 ;;;; Array ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
